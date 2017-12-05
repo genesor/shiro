@@ -3,9 +3,21 @@ package main
 import (
 	"log"
 
+	"encoding/json"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/garyburd/redigo/redis"
 )
+
+type GeoJSONPolygonFeature struct {
+	Type     string         `json:"type"`
+	Geometry GeoJSONPolygon `json:"geometry"`
+}
+
+type GeoJSONPolygon struct {
+	Type        string        `json:"type"`
+	Coordinates [][][]float64 `json:"coordinates"`
+}
 
 func main() {
 	c, err := redis.Dial("tcp", ":32768")
@@ -100,10 +112,21 @@ func main() {
 	resStr, err := redis.String(res2, nil)
 	spew.Dump(resStr, err)
 
+	geoJSON := new(GeoJSONPolygonFeature)
 	res3, _ := c.Do("INTERSECTS", "cities", "OBJECT", pointInside)
-	blek, err := redis.StringMap(res3, nil)
-	spew.Dump(blek, err)
-	spew.Dump(res3)
+	d1 := res3.([]interface{})
+	d2 := d1[1].([]interface{})
+	spew.Dump(d2[0])
+	d3 := d2[0].([]interface{})
+
+	rdGeoJSON := d3[1].([]byte)
+	rdKey := d3[0].([]byte)
+
+	spew.Dump(string(rdGeoJSON), string(rdKey))
+
+	err = json.Unmarshal(rdGeoJSON, geoJSON)
+	spew.Dump(geoJSON, err)
+	//spew.Dump(res3)
 
 	res4, _ := c.Do("INTERSECTS", "cities", "OBJECT", pointOutside)
 	spew.Dump(res4)

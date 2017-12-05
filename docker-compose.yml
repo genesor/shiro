@@ -1,0 +1,7 @@
+version: '3'
+services:
+ tile38:
+   image: tile38/tile38:latest
+   container_name: shiro-tile
+   ports:
+     - 32768:9851

@@ -105,20 +105,21 @@ func main() {
 		]
 	}`
 
-	res, _ := c.Do("SET", "cities", "paris", "OBJECT", paris)
-	spew.Dump(res)
+	// CURL
+	// INTERSECTS cities OBJECT {"type":"Point","coordinates":[2.3531341552734375,48.88052184622007]}
+	// INTERSECTS cities OBJECT {"type":"Point","coordinates":[2.3622536659240723,48.8047365487258]}
 
-	res2, _ := c.Do("GET", "cities", "paris")
-	resStr, err := redis.String(res2, nil)
-	spew.Dump(resStr, err)
+	_, err = c.Do("SET", "cities", "paris", "OBJECT", paris)
+	if err != nil {
+		log.Fatalf("Could not SET in store: %v\n", err)
+	}
 
-	geoJSON := new(GeoJSONPolygonFeature)
 	res3, _ := c.Do("INTERSECTS", "cities", "OBJECT", pointInside)
 	d1 := res3.([]interface{})
 	d2 := d1[1].([]interface{})
-	spew.Dump(d2[0])
 	d3 := d2[0].([]interface{})
 
+	geoJSON := new(GeoJSONPolygonFeature)
 	rdGeoJSON := d3[1].([]byte)
 	rdKey := d3[0].([]byte)
 
@@ -130,5 +131,6 @@ func main() {
 
 	res4, _ := c.Do("INTERSECTS", "cities", "OBJECT", pointOutside)
 	spew.Dump(res4)
+
 	spew.Dump("SHIRO")
 }

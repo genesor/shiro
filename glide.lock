@@ -1,5 +1,5 @@
-hash: 86dd643f79c39c8f19a4a0b1c7dc74d794be72588be49dbc6a0d45d3c2a66458
-updated: 2017-12-05T01:11:37.479945691+01:00
+hash: dfe2ac73e754efeadccad5400530484a98e8d31703bbf08df85796806a7ee66a
+updated: 2017-12-06T01:50:08.116806529+01:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 346938d642f2ec3594ed81d874461961cd0faa76
@@ -8,5 +8,6 @@ imports:
 - name: github.com/garyburd/redigo
   version: 47dc60e71eed504e3ef8e77ee3c6fe720f3be57f
   subpackages:
+  - internal
   - redis
 testImports: []

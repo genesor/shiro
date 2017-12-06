@@ -3,21 +3,11 @@ package main
 import (
 	"log"
 
-	"encoding/json"
+	"errors"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/garyburd/redigo/redis"
 )
-
-type GeoJSONPolygonFeature struct {
-	Type     string         `json:"type"`
-	Geometry GeoJSONPolygon `json:"geometry"`
-}
-
-type GeoJSONPolygon struct {
-	Type        string        `json:"type"`
-	Coordinates [][][]float64 `json:"coordinates"`
-}
 
 func main() {
 	c, err := redis.Dial("tcp", ":32768")
@@ -25,85 +15,6 @@ func main() {
 		log.Fatalf("Could not connect: %v\n", err)
 	}
 	defer c.Close()
-
-	paris := `
-	{
-		"type": "Feature",
-		"properties": {},
-		"geometry": {
-			"type": "Polygon",
-			"coordinates": [
-				[
-					[
-						2.3548507690429683,
-						48.90647978628254
-					],
-					[
-						2.29888916015625,
-						48.90332040974438
-					],
-					[
-						2.252197265625,
-						48.87465122643438
-					],
-					[
-						2.230224609375,
-						48.847773057644694
-					],
-					[
-						2.2899627685546875,
-						48.81296811706886
-					],
-					[
-						2.3349380493164062,
-						48.807089572708925
-					],
-					[
-						2.4097824096679688,
-						48.81115940759497
-					],
-					[
-						2.4334716796875,
-						48.83353759505566
-					],
-					[
-						2.4461746215820312,
-						48.85974578950385
-					],
-					[
-						2.4365615844726562,
-						48.890455171696374
-					],
-					[
-						2.3850631713867183,
-						48.90625412315376
-					],
-					[
-						2.3548507690429683,
-						48.90647978628254
-					]
-				]
-			]
-		}
-	}`
-
-	pointInside := `
-	{
-		"type": "Point",
-		"coordinates": [
-		  2.3531341552734375,
-		  48.88052184622007
-		]
-	}`
-
-	pointOutside := `
-	{
-		"type": "Point",
-		"coordinates": [
-			2.3622536659240723,
-			48.8047365487258
-		]
-	}`
 
 	// CURL
 	// INTERSECTS cities OBJECT {"type":"Point","coordinates":[2.3531341552734375,48.88052184622007]}
@@ -114,23 +25,61 @@ func main() {
 		log.Fatalf("Could not SET in store: %v\n", err)
 	}
 
-	res3, _ := c.Do("INTERSECTS", "cities", "OBJECT", pointInside)
-	d1 := res3.([]interface{})
-	d2 := d1[1].([]interface{})
-	d3 := d2[0].([]interface{})
+	_, err = c.Do("SET", "cities", "vj-vitry", "OBJECT", VJIvry)
+	if err != nil {
+		log.Fatalf("Could not SET in store: %v\n", err)
+	}
 
-	geoJSON := new(GeoJSONPolygonFeature)
-	rdGeoJSON := d3[1].([]byte)
-	rdKey := d3[0].([]byte)
+	m, err := findEncompassingZones(c, pointNorthParis)
+	// Should display 1 match and no err
+	spew.Dump(m, err)
 
-	spew.Dump(string(rdGeoJSON), string(rdKey))
+	m2, err := findEncompassingZones(c, pointVillejuif)
+	// Should display 1 match and no err
+	spew.Dump(m2, err)
 
-	err = json.Unmarshal(rdGeoJSON, geoJSON)
-	spew.Dump(geoJSON, err)
-	//spew.Dump(res3)
+	m3, err := findEncompassingZones(c, pointSouthParis)
+	// Should display 2 match and no err
+	spew.Dump(m3, err)
 
-	res4, _ := c.Do("INTERSECTS", "cities", "OBJECT", pointOutside)
-	spew.Dump(res4)
+	m4, err := findEncompassingZones(c, pointAulnaySous)
+	// Should display 0 match and no err
+	spew.Dump(m4, err)
+
+	//geoJSON := new(GeoJSONPolygonFeature)
+	//err = json.Unmarshal(, geoJSON)
+	//spew.Dump(geoJSON, err)
 
 	spew.Dump("SHIRO")
+}
+
+func findEncompassingZones(c redis.Conn, p *Point) ([]*MatchResult, error) {
+	res, err := c.Do("INTERSECTS", "cities", "OBJECT", p.ToGeoJSON())
+	if err != nil {
+		return nil, err
+	}
+
+	resSlice, ok := res.([]interface{})
+	if !ok {
+		return nil, errors.New("unexpected tile38 response format 1")
+	}
+	resSlice, ok = resSlice[1].([]interface{})
+	if !ok {
+		return nil, errors.New("unexpected tile38 response format 2")
+	}
+
+	matches := make([]*MatchResult, len(resSlice))
+	for i, r := range resSlice {
+		match, ok := r.([]interface{})
+		if !ok {
+			return nil, errors.New("unexpected tile38 response format 2")
+		}
+
+		matches[i] = &MatchResult{
+			Name:    string(match[0].([]byte)),
+			GeoJSON: match[1].([]byte),
+		}
+	}
+
+	return matches, nil
 }

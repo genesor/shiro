@@ -30,21 +30,34 @@ func main() {
 		log.Fatalf("Could not SET in store: %v\n", err)
 	}
 
+	_, err = c.Do("SET", "cities", "boulogne", "OBJECT", Boulogne)
+	if err != nil {
+		log.Fatalf("Could not SET in store: %v\n", err)
+	}
+
 	m, err := findEncompassingZones(c, pointNorthParis)
-	// Should display 1 match and no err
-	spew.Dump(m, err)
+	spew.Dump("Should display 1 match and no err")
+	spew.Dump("== MATCHING 1 ==", len(m), m[0].Name, err)
 
 	m2, err := findEncompassingZones(c, pointVillejuif)
-	// Should display 1 match and no err
-	spew.Dump(m2, err)
+	spew.Dump("Should display 1 match and no err")
+	spew.Dump("== MATCHING 2 ==", len(m2), m2[0].Name, err)
 
 	m3, err := findEncompassingZones(c, pointSouthParis)
-	// Should display 2 match and no err
-	spew.Dump(m3, err)
+	spew.Dump("Should display 2 match and no err")
+	spew.Dump("== MATCHING 3 ==", len(m3), m3[0].Name, m3[1].Name, err)
 
 	m4, err := findEncompassingZones(c, pointAulnaySous)
-	// Should display 0 match and no err
-	spew.Dump(m4, err)
+	spew.Dump("Should display 0 match and no err")
+	spew.Dump("== MATCHING 4 ==", len(m4), m4, err)
+
+	m5, err := findEncompassingZones(c, pointParcDesPrinces) // <- 😭 It matches a zone
+	spew.Dump("Should display 0 match and no err")
+	spew.Dump("== MATCHING 5 ==", len(m5), m5, err)
+
+	m6, err := findEncompassingZones(c, pointPorteStCloud)
+	spew.Dump("Should display 1 match and no err")
+	spew.Dump("== MATCHING 6 ==", len(m6), m6[0].Name, err)
 
 	//geoJSON := new(GeoJSONPolygonFeature)
 	//err = json.Unmarshal(, geoJSON)

@@ -26,8 +26,8 @@ var pointNorthParis = &Point{
 
 var pointSouthParis = &Point{
 	Coordinates: Coordinates{
-		Latitude:  48.8154549860561,
-		Longitude: 2.379226684570312,
+		Latitude:  48.822194345985714,
+		Longitude: 2.363004684448242,
 	},
 }
 
@@ -42,5 +42,33 @@ var pointAulnaySous = &Point{
 	Coordinates: Coordinates{
 		Latitude:  48.91821286473131,
 		Longitude: 2.4708938598632812,
+	},
+}
+
+var pointParcDesPrinces = &Point{
+	Coordinates: Coordinates{
+		Latitude:  48.841404318083505,
+		Longitude: 2.253119945526123,
+	},
+}
+
+var pointPorteStCloud = &Point{
+	Coordinates: Coordinates{
+		Latitude:  48.83788774899389,
+		Longitude: 2.2564244270324703,
+	},
+}
+
+var ptdonut = &Point{
+	Coordinates: Coordinates{
+		Longitude: 2.234344482421875,
+		Latitude:  49.13006052488493,
+	},
+}
+
+var ptdonuthole = &Point{
+	Coordinates: Coordinates{
+		Latitude:  49.139045760119835,
+		Longitude: 2.036590576171875,
 	},
 }
